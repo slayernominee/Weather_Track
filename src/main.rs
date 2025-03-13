@@ -3,10 +3,9 @@ use actix_web::rt::Runtime;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use askama::Template;
 use serde::{Deserialize, Serialize};
-use std::fs;
 use std::sync::RwLock;
-use std::thread;
 use std::time::Duration;
+use std::{env, fs, thread};
 
 mod weather;
 use weather::{dump_weather, fetch_weather, get_weather, init_db, WeatherData};
@@ -79,8 +78,10 @@ struct Cities {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let host = "127.0.0.1";
-    let port = 8080;
+    let args: Vec<String> = env::args().collect();
+
+    let host = "0.0.0.0";
+    let port: u16 = args[1].parse().unwrap_or(8080);
 
     let cities = fs::read_to_string("cities.json").unwrap();
     let cities: CitiesJson = serde_json::from_str(cities.as_str()).unwrap();
