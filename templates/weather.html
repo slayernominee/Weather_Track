@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Weather Track - {{ city }}</title>
+
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f9f9f9;
+                color: #333;
+            }
+
+            h1 {
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 2em;
+                color: #444;
+            }
+
+            .info-field {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                padding: 15px 20px;
+                margin: 20px 0;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                border-radius: 5px;
+                font-size: 1.1em;
+                color: #555;
+            }
+
+            .info-field p {
+                margin: 8px 0;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background-color: #fff;
+                margin: 20px 0;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            th,
+            td {
+                padding: 12px 15px;
+                border: 1px solid #ddd;
+                text-align: left;
+            }
+
+            th {
+                background-color: #f3f3f3;
+                font-weight: bold;
+            }
+
+            tr:nth-child(even) {
+                background-color: #f7f7f7;
+            }
+
+            tr:hover {
+                background-color: #f1f1f1;
+            }
+
+            img {
+                display: block;
+                max-width: 50px;
+                height: auto;
+            }
+
+            .button {
+                padding: 10px 16px;
+                border-width: 1px;
+                border-color: black;
+                border-radius: 8px;
+                background-color: rgba(0, 0, 0, 0.2);
+                color: white;
+                text-decoration: none;
+            }
+
+            img {
+                user-select: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="float: left"><a class="button" href="/">Home</a></div>
+        <h1>Weather Track für {{ city }}</h1>
+        <div class="info-field">
+            <p><strong>Land:</strong> {{ weather_data[0].sys.country }}</p>
+            <p><strong>Koordinaten:</strong> ({{ weather_data[0].coord.lat }}, {{ weather_data[0].coord.lon }})</p>
+        </div>
+        <table>
+            <tr>
+                <th>Zeitpunkt</th>
+                <th>Wetter Beschreibung</th>
+                <th>Temperatur</th>
+                <th>Min - Max Temperatur</th>
+                <th>Luftfeuchtigkeit</th>
+                <th>Wind Geschwindigkeit</th>
+                <th>Wing Grad</th>
+                <th>Regen</th>
+            </tr>
+            {% for data in weather_data %}
+            <tr>
+                <td class="ts">{{ data.timestamp }}</td>
+                <td>
+                    {{ data.weather.description }}
+                    <img src="https://openweathermap.org/img/wn/{{ data.weather.icon }}@2x.png" />
+                </td>
+                <td>{{ data.main.temp }} °C</td>
+                <td>{{ data.main.temp_min }} - {{ data.main.temp_max }} °C</td>
+                <td>{{ data.main.humidity }}%</td>
+                <td>{{ data.wind.speed }}</td>
+                <td>{{ data.wind.deg }}°</td>
+                <td>{{ data.rain.one_hour.unwrap_or(0.0) }}</td>
+                <!--
+                <td class="ts">{{ data.sys.sunrise }}</td>
+                <td class="ts">{{ data.sys.sunset }}</td>
+                -->
+            </tr>
+            {% endfor %}
+        </table>
+
+        <script>
+            // Function to convert UTC timestamp to a readable date string
+            function convertTimestampToDate(timestamp) {
+                var date = new Date(timestamp * 1000);
+                return date.toLocaleString("de-DE");
+            }
+
+            // get all timestamps
+            var ts = document.querySelectorAll(".ts");
+            ts.forEach(function (el) {
+                el.textContent = convertTimestampToDate(el.textContent);
+            });
+        </script>
+    </body>
+</html>
