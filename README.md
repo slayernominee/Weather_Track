@@ -22,3 +22,4 @@ und dann einfach hinter nem reverse proxy betreiben + wenn gewollt einfach nen h
 
 - Grafisches add_city, evtl ne post req und form
 - paar bilder hinzufügen
+- regenerate openweathermaps api key & in .env file packen
