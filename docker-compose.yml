@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+    weather_track:
+        build: .
+        ports:
+            - "8080:8080"
+        restart: unless-stopped
+        environment:
+            - OPENWEATHERMAP_APIKEY=d3f4d1a11aefa6df44b917354b9e12b

@@ -82,7 +82,14 @@ pub async fn fetch_weather(city: &str) -> Result<WeatherResponse, reqwest::Error
 
     let data = reqwest::get(&url).await?.text().await?;
 
-    let weather: WeatherResponse = serde_json::from_str(data.as_str()).unwrap();
+    let weather: WeatherResponse = match serde_json::from_str(data.as_str()) {
+        Ok(w) => w,
+        Err(e) => {
+            eprintln!("Received data: {}", data);
+            eprintln!("Failed to parse weather data: {}", e);
+            panic!("lol");
+        }
+    };
 
     Ok(weather)
 }

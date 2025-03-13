@@ -11,6 +11,8 @@ dann in einer Tabelle über einen Zeitraum angezeigt wird.
 
 ## Deployment
 
+### Directly
+
 env variable OPENWEATHERMAP_APIKEY setzen bzw. in .env file speichern (siehe .env.example)
 
 ```sh
@@ -19,5 +21,15 @@ cargo build --release
 ```
 
 default port = 8080
+
+### Docker
+
+evtl. noch die docker-compose anpassen (wegen port und api key)
+
+```sh
+docker-compose up --build
+```
+
+### ...
 
 und dann einfach hinter nem reverse proxy betreiben + wenn gewollt einfach nen http auth davor machen
