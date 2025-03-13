@@ -15,7 +15,7 @@ COPY . ./
 RUN cargo build --release
 
 # Use a minimal runtime environment
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 WORKDIR /app
 
 # Copy the compiled binary from the builder stage

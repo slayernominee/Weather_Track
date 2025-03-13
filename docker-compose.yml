@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
     weather_track:
-        build: .
+        image: ghcr.io/slayernominee/weather_track:latest
         ports:
             - "8080:8080"
         restart: unless-stopped

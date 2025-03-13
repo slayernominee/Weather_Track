@@ -27,7 +27,8 @@ default port = 8080
 evtl. noch die docker-compose anpassen (wegen port und api key)
 
 ```sh
-docker-compose up --build
+docker pull ghcr.io/slayernominee/weather_track:latest
+docker-compose up -d
 ```
 
 ### ...
