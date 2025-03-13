@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use rusqlite::{params, Connection, Result as SqliteResult};
 use serde::{Deserialize, Serialize};
 
@@ -88,7 +89,7 @@ pub async fn fetch_weather(city: &str) -> Result<WeatherResponse, reqwest::Error
 pub fn init_db() -> SqliteResult<()> {
     let conn = Connection::open("weather.db")?;
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS weather (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL, query TEXT, city TEXT NOT NULL, cord_lon REAL NOT NULL, cord_lat REAL NOT NULL, weather_id INTEGER, weather_main TEXT, weather_description TEXT, weather_icon TEXT, base TEXT, main_temp REAL, main_feels_like REAL, main_temp_min REAL, main_temp_max REAL, main_pressure INTEGER, main_humidity INTEGER, main_sea_level INTEGER, main_grnd_level INTEGER, visibility INTEGER, wind_speed REAL, wind_deg INTEGER, wind_gust REAL, rain_1h REAL, clouds_all INTEGER, dt INTEGER, sys_country TEXT, sys_sunrise INTEGER, sys_sunset INTEGER, timezone INTEGER, city_id INTEGER, name TEXT, cod INTEGER)",
+        "CREATE TABLE IF NOT EXISTS weather (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL, day TEXT, query TEXT, cord_lon REAL NOT NULL, cord_lat REAL NOT NULL, weather_id INTEGER, weather_main TEXT, weather_description TEXT, weather_icon TEXT, base TEXT, main_temp REAL, main_feels_like REAL, main_temp_min REAL, main_temp_max REAL, main_pressure INTEGER, main_humidity INTEGER, main_sea_level INTEGER, main_grnd_level INTEGER, visibility INTEGER, wind_speed REAL, wind_deg INTEGER, wind_gust REAL, rain_1h REAL, clouds_all INTEGER, dt INTEGER, country TEXT, sys_sunrise INTEGER, sys_sunset INTEGER, timezone INTEGER, city_id INTEGER, name TEXT, cod INTEGER)",
         [],
     )
     ?;
@@ -96,16 +97,21 @@ pub fn init_db() -> SqliteResult<()> {
     Ok(())
 }
 
-pub fn dump_weather(timestamp: i64, query: &str, weather: WeatherResponse) -> SqliteResult<()> {
+pub fn dump_weather(query: &str, weather: WeatherResponse) -> SqliteResult<()> {
     let conn = Connection::open("weather.db")?;
 
+    let timestamp = Utc::now().timestamp();
+
+    let datetime = DateTime::from_timestamp(timestamp, 0).unwrap();
+    let date_str = datetime.format("%Y-%m-%d").to_string(); // "YYYY-MM-DD"
+
     conn.execute(
-            "INSERT INTO weather (timestamp, query, city, cord_lon, cord_lat, weather_id, weather_main, weather_description, weather_icon, base, main_temp, main_feels_like, main_temp_min, main_temp_max, main_pressure, main_humidity, main_sea_level, main_grnd_level, visibility, wind_speed, wind_deg, wind_gust, rain_1h, clouds_all, dt, sys_country, sys_sunrise, sys_sunset, timezone, city_id, name, cod)
+            "INSERT INTO weather (timestamp, day, query, cord_lon, cord_lat, weather_id, weather_main, weather_description, weather_icon, base, main_temp, main_feels_like, main_temp_min, main_temp_max, main_pressure, main_humidity, main_sea_level, main_grnd_level, visibility, wind_speed, wind_deg, wind_gust, rain_1h, clouds_all, dt, country, sys_sunrise, sys_sunset, timezone, city_id, name, cod)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32)",
             params![
                 timestamp,
+                date_str,
                 query,
-                weather.name,
                 weather.coord.lon,
                 weather.coord.lat,
                 weather.weather.get(0).map_or(0, |w| w.id), // Default to 0 if no weather data
@@ -140,75 +146,81 @@ pub fn dump_weather(timestamp: i64, query: &str, weather: WeatherResponse) -> Sq
     Ok(())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct WeatherData {
-    pub id: usize,
-    pub timestamp: u64,
-    pub query: String,
-    pub coord: Coord,
-    pub weather: Weather,
-    pub base: String,
-    pub main: Main,
-    pub visibility: u32,
-    pub wind: Wind,
-    pub rain: Rain,
-    pub clouds: Clouds,
-    pub dt: u64,
-    pub sys: Sys,
-    pub timezone: i32,
-    pub name: String,
-    pub cod: u32,
+    pub day: String,
+
+    pub min_temp: f32,
+    pub max_temp: f32,
+    pub avg_temp: f32,
+
+    pub samples: u32,
+
+    pub min_humidity: f32,
+    pub max_humidity: f32,
+    pub avg_humidity: f32,
+
+    pub min_wind_speed: f32,
+    pub max_wind_speed: f32,
+    pub avg_wind_speed: f32,
+
+    pub min_rain_1h: f32,
+    pub max_rain_1h: f32,
+    pub avg_rain_1h: f32,
+
+    pub icons: Vec<String>,
+
+    pub max_wind_gust: f32,
+
+    pub country: String,
+    pub cord_lon: f64,
+    pub cord_lat: f64,
 }
 
 pub fn get_weather(query: &str) -> SqliteResult<Vec<WeatherData>> {
     let conn = Connection::open("weather.db")?;
-    let mut stmt = conn.prepare("SELECT * FROM weather WHERE query = ?1 ORDER BY id DESC")?;
-    let weather_iter = stmt.query_map(params![query], |row| {
-        Ok(WeatherData {
-            id: row.get(0)?,
-            timestamp: row.get(1)?,
-            query: row.get(2)?,
 
-            coord: Coord {
-                lon: row.get(4)?,
-                lat: row.get(5)?,
-            },
-            weather: Weather {
-                id: row.get(6)?,
-                main: row.get(7)?,
-                description: row.get(8)?,
-                icon: row.get(9)?,
-            },
-            base: row.get(10)?,
-            main: Main {
-                temp: row.get(11)?,
-                feels_like: row.get(12)?,
-                temp_min: row.get(13)?,
-                temp_max: row.get(14)?,
-                pressure: row.get(15)?,
-                humidity: row.get(16)?,
-                sea_level: row.get(17)?,
-                grnd_level: row.get(18)?,
-            },
-            visibility: row.get(19)?,
-            wind: Wind {
-                speed: row.get(20)?,
-                deg: row.get(21)?,
-                gust: Some(row.get(22)?),
-            },
-            rain: Rain {
-                one_hour: Some(row.get(23)?),
-            },
-            clouds: Clouds { all: row.get(24)? },
-            dt: row.get(25)?,
-            sys: Sys {
-                country: row.get(26)?,
-                sunrise: row.get(27)?,
-                sunset: row.get(28)?,
-            },
-            timezone: row.get(29)?,
-            name: row.get(31)?,
-            cod: row.get(32)?,
+    let mut stmt = conn.prepare(
+        "SELECT day, min(main_temp), max(main_temp), avg(main_temp), count(*), min(main_humidity), max(main_humidity), avg(main_humidity),
+       min(wind_speed), max(wind_speed), avg(wind_speed), min(rain_1h), max(rain_1h), avg(rain_1h),
+       GROUP_CONCAT(DISTINCT weather_icon) AS icons, max(wind_gust), GROUP_CONCAT(DISTINCT country), cord_lon, cord_lat
+        FROM weather WHERE query = ?1 GROUP BY day, cord_lon, cord_lat ORDER BY id DESC",
+    )?;
+    let weather_iter = stmt.query_map(params![query], |row| {
+        let icons: String = row.get(14)?;
+        let icons = icons
+            .split(",")
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
+
+        Ok(WeatherData {
+            day: row.get(0)?,
+
+            min_temp: row.get(1)?,
+            max_temp: row.get(2)?,
+            avg_temp: row.get(3)?,
+
+            samples: row.get(4)?,
+
+            min_humidity: row.get(5)?,
+            max_humidity: row.get(6)?,
+            avg_humidity: row.get(7)?,
+
+            min_wind_speed: row.get(8)?,
+            max_wind_speed: row.get(9)?,
+            avg_wind_speed: row.get(10)?,
+
+            min_rain_1h: row.get(11)?,
+            max_rain_1h: row.get(12)?,
+            avg_rain_1h: row.get(13)?,
+
+            icons, // 14
+
+            max_wind_gust: row.get(15)?,
+
+            country: row.get(16)?,
+            cord_lon: row.get(17)?,
+            cord_lat: row.get(18)?,
         })
     })?;
 

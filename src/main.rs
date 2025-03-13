@@ -2,7 +2,6 @@ use actix_web::rt::time::sleep;
 use actix_web::rt::Runtime;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use askama::Template;
-use chrono::Utc;
 use std::fs;
 use std::sync::RwLock;
 use std::thread;
@@ -81,9 +80,7 @@ async fn main() -> std::io::Result<()> {
                 for city in cts {
                     let weather_data = fetch_weather(city.as_str()).await.unwrap();
 
-                    let ts = Utc::now().timestamp();
-
-                    match dump_weather(ts, city.as_str(), weather_data) {
+                    match dump_weather(city.as_str(), weather_data) {
                         Ok(_) => println!("Weather data for {} saved", city),
                         Err(e) => println!("Failed to save weather data for {}: {}", city, e),
                     }
