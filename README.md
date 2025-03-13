@@ -7,7 +7,11 @@ aktuell auf Deutsch, evtl auf Englisch übersetzen falls benötigt
 Webanwendung wo man Städte eingeben kann für die dann alle 10min das aktuelle Wetter protokolliert wird, dann aggegriert wird. Und letztendlich
 dann in einer Tabelle über einen Zeitraum angezeigt wird.
 
+{ platzhalter bilder }
+
 ## Deployment
+
+env variable OPENWEATHERMAP_APIKEY setzen bzw. in .env file speichern (siehe .env.example)
 
 ```sh
 cargo build --release
@@ -17,8 +21,3 @@ cargo build --release
 default port = 8080
 
 und dann einfach hinter nem reverse proxy betreiben + wenn gewollt einfach nen http auth davor machen
-
-## TODOs
-
-- paar bilder hinzufügen
-- regenerate openweathermaps api key
