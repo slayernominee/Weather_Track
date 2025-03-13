@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Weather Track</title>
+
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f9f9f9;
+                color: #333;
+            }
+
+            h1 {
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 2em;
+                color: #444;
+            }
+
+            .info-field {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                padding: 15px 20px;
+                margin: 20px 0;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                border-radius: 5px;
+                font-size: 1.1em;
+                color: #555;
+            }
+
+            .info-field p {
+                margin: 8px 0;
+            }
+
+            tr:hover {
+                background-color: #f1f1f1;
+            }
+
+            img {
+                display: block;
+                max-width: 50px;
+                height: auto;
+            }
+
+            .button {
+                padding: 10px 16px;
+                border-width: 1px;
+                border-color: black;
+                border-radius: 8px;
+                background-color: rgba(0, 0, 0, 0.2);
+                color: white;
+                text-decoration: none;
+            }
+
+            .city {
+                padding: 16px 32px;
+                margin: 6px 12px;
+                border-width: 1px;
+                border-color: black;
+                border-radius: 8px;
+                background-color: rgba(0, 0, 0, 0.2);
+                color: white;
+                text-decoration: none;
+            }
+
+            img {
+                user-select: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>Weather Track</h1>
+            <div class="info-field">
+                <p><strong>Version:</strong> 1.0</p>
+                <p><strong>By:</strong> Marcel Rieger</p>
+            </div>
+
+            <div>
+                {% for city in cities %}
+
+                <a href="/weather/{{city}}" class="city"> {{ city }} </a>
+
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

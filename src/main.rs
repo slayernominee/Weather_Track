@@ -2,6 +2,7 @@ use actix_web::rt::time::sleep;
 use actix_web::rt::Runtime;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use askama::Template;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::sync::RwLock;
 use std::thread;
@@ -10,19 +11,21 @@ use std::time::Duration;
 mod weather;
 use weather::{dump_weather, fetch_weather, get_weather, init_db, WeatherData};
 
+#[derive(Template)]
+#[template(path = "index.html")]
+pub struct IndexTemplate {
+    pub cities: Vec<String>,
+}
+
 #[get("/")]
 async fn index(data: web::Data<Cities>) -> impl Responder {
     let cities: Vec<String> = data.cities.read().unwrap().clone();
 
-    let mut body = "<h1>Weather Track</h1>".to_string();
+    let template = IndexTemplate { cities };
 
-    body.push_str("<ul>");
-    for city in cities {
-        body.push_str(format!("<li><a href=\"/weather/{}\">{}</a></li>", city, city).as_str());
-    }
-    body.push_str("</ul>");
-
-    HttpResponse::Ok().body(body)
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(template.render().unwrap())
 }
 
 #[derive(Template)]
@@ -46,12 +49,30 @@ async fn weather_info(city: actix_web::web::Path<String>) -> impl Responder {
         .body(template.render().unwrap())
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[get("/add_city/{city}")]
+async fn add_city(city: actix_web::web::Path<String>, data: web::Data<Cities>) -> impl Responder {
+    data.cities.write().unwrap().push(city.to_string());
+
+    // write back to file
+    let cities = CitiesJson {
+        cities: data.cities.read().unwrap().clone(),
+    };
+
+    fs::write("cities.json", serde_json::to_string(&cities).unwrap()).unwrap();
+
+    println!("Added City: {}", city);
+
+    HttpResponse::SeeOther()
+        .append_header(("location", "/"))
+        .finish()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct CitiesJson {
     cities: Vec<String>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Cities {
     cities: RwLock<Vec<String>>,
 }
@@ -99,6 +120,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(cities.clone())
             .service(index)
             .service(weather_info)
+            .service(add_city)
     })
     .bind((host, port))?
     .run()

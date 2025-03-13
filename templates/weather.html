@@ -60,14 +60,6 @@
                 background-color: #f7f7f7;
             }
 
-            /*tr:nth-child(2) {
-                background-color: #f8d7da;
-            }
-
-            tr:nth-child(2):hover {
-                background-color: #f5c6cb;
-                }*/
-
             tr:hover {
                 background-color: #f1f1f1;
             }
@@ -76,11 +68,24 @@
                 display: none;
             }
 
+            .first_day {
+                display: none;
+            }
+
             tr:nth-child(2) .prelim {
                 display: inline;
                 font-size: 0.8em;
                 color: #721c24;
                 background-color: #f8d7da;
+                padding: 2px 5px;
+                border-radius: 5px;
+            }
+
+            tr:nth-last-child(1) .first_day {
+                display: inline;
+                font-size: 0.8em;
+                color: #004085;
+                background-color: #cce5ff;
                 padding: 2px 5px;
                 border-radius: 5px;
             }
@@ -107,58 +112,61 @@
         </style>
     </head>
     <body>
-        <div style="float: left"><a class="button" href="/">Home</a></div>
-        <h1>Weather Track für {{ city }}</h1>
-        <div class="info-field">
-            <p><strong>Land:</strong> {{ weather_data[0].country}}</p>
-            <p><strong>Koordinaten:</strong> ({{ weather_data[0].cord_lon}}, {{ weather_data[0].cord_lat}})</p>
-        </div>
-        <table>
-            <tr>
-                <th>Tag</th>
-                <th>Wetter</th>
-                <th>Ø Temperatur</th>
-                <th>Min - Max Temperatur</th>
-                <th>Luftfeuchtigkeit</th>
-                <th>Wind Geschwindigkeit</th>
-                <th>Max Windböhen</th>
-                <th>Max Niederschlag (Moment)</th>
-                <th>Ø Niederschlag</th>
-            </tr>
-            {% for data in weather_data %}
-            <tr>
-                <td>{{ data.day }} <span class="prelim">Vorläufig</span></td>
-                <td>
-                    {% for icon in data.icons %}
-                    <img src="https://openweathermap.org/img/wn/{{ icon }}@2x.png" />
-                    {% endfor %}
-                </td>
-                <td>{{ data.avg_temp }} °C</td>
-                <td>{{ data.min_temp }} - {{ data.max_temp }} °C</td>
-                <td>{{ data.min_humidity }} - {{ data.max_humidity }}%</td>
-                <td>{{ data.min_wind_speed }} - {{ data.max_wind_speed }} m/s</td>
-                <td>{{ data.max_wind_gust }} m/s</td>
-                <td>{{ data.max_rain_1h }} mm/h</td>
-                <td>{{ data.avg_rain_1h }} mm/h</td>
-                <!--
+        <div>
+            <div style="float: left"><a class="button" href="/">Home</a></div>
+            <h1>Weather Track für {{ city }}</h1>
+            <div class="info-field">
+                <p><strong>Land:</strong> {{ weather_data[0].country}}</p>
+                <p><strong>Koordinaten:</strong> ({{ weather_data[0].cord_lon}}, {{ weather_data[0].cord_lat}})</p>
+            </div>
+            <table>
+                <tr>
+                    <th>Tag</th>
+                    <th>Wetter</th>
+                    <th>Ø Temperatur</th>
+                    <th>Min - Max Temperatur</th>
+                    <th>Luftfeuchtigkeit</th>
+                    <th>Wind Geschwindigkeit</th>
+                    <th>Max Windböhen</th>
+                    <th>Max Niederschlag (Moment)</th>
+                    <th>Ø Niederschlag</th>
+                </tr>
+                {% for data in weather_data %}
+                <tr>
+                    <td>
+                        {{ data.day }} <span class="prelim">Vorläufig</span><span class="first_day">Unvollständig</span>
+                    </td>
+                    <td>
+                        {% for icon in data.icons %}
+                        <img src="https://openweathermap.org/img/wn/{{ icon }}@2x.png" />
+                        {% endfor %}
+                    </td>
+                    <td>{{ data.avg_temp }} °C</td>
+                    <td>{{ data.min_temp }} - {{ data.max_temp }} °C</td>
+                    <td>{{ data.min_humidity }} - {{ data.max_humidity }}%</td>
+                    <td>{{ data.min_wind_speed }} - {{ data.max_wind_speed }} m/s</td>
+                    <td>{{ data.max_wind_gust }} m/s</td>
+                    <td>{{ data.max_rain_1h }} mm/h</td>
+                    <td>{{ data.avg_rain_1h }} mm/h</td>
+                    <!--
                 <td class="ts"></td>
-                -->
-            </tr>
-            {% endfor %}
-        </table>
+                --></tr>
+                {% endfor %}
+            </table>
 
-        <script>
-            // Function to convert UTC timestamp to a readable date string
-            function convertTimestampToDate(timestamp) {
-                var date = new Date(timestamp * 1000);
-                return date.toLocaleString("de-DE");
-            }
+            <script>
+                // Function to convert UTC timestamp to a readable date string
+                function convertTimestampToDate(timestamp) {
+                    var date = new Date(timestamp * 1000);
+                    return date.toLocaleString("de-DE");
+                }
 
-            // get all timestamps
-            var ts = document.querySelectorAll(".ts");
-            ts.forEach(function (el) {
-                el.textContent = convertTimestampToDate(el.textContent);
-            });
-        </script>
+                // get all timestamps
+                var ts = document.querySelectorAll(".ts");
+                ts.forEach(function (el) {
+                    el.textContent = convertTimestampToDate(el.textContent);
+                });
+            </script>
+        </div>
     </body>
 </html>
