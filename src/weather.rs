@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use rusqlite::{params, Connection, Result as SqliteResult};
 use serde::{Deserialize, Serialize};
+use std::env;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WeatherResponse {
@@ -71,12 +72,12 @@ pub struct Sys {
     pub sunset: u64,
 }
 
-const API_KEY: &str = "f2f4d7c33eafd6df44b9979716b9e56f";
-
 pub async fn fetch_weather(city: &str) -> Result<WeatherResponse, reqwest::Error> {
     let url = format!(
         "https://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=de&units=metric",
-        city, API_KEY
+        city,
+        env::var("OPENWEATHERMAP_APIKEY")
+            .expect("You need to set the OPENWEATHERMAP_APIKEY env var!")
     );
 
     let data = reqwest::get(&url).await?.text().await?;

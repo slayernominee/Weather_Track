@@ -88,7 +88,14 @@
                 {% endfor %}
             </div>
 
-            <p>Stadt hinzufügen mit /add_city/(name)</p>
+            <div style="margin-top: 100px">
+                <form action="/add_city" method="POST">
+                    <label for="city">Stadt</label>
+                    <input type="text" name="city" required placeholder="Berlin,DE" />
+                    <br />
+                    <button style="margin-top: 8px" type="submit">Hinzufügen</button>
+                </form>
+            </div>
         </div>
     </body>
 </html>

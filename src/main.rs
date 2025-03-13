@@ -1,7 +1,8 @@
 use actix_web::rt::time::sleep;
 use actix_web::rt::Runtime;
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use askama::Template;
+use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use std::sync::RwLock;
 use std::time::Duration;
@@ -35,7 +36,7 @@ pub struct WeatherTemplate {
 }
 
 #[get("/weather/{city}")]
-async fn weather_info(city: actix_web::web::Path<String>) -> impl Responder {
+async fn weather_info(city: web::Path<String>) -> impl Responder {
     let weather_data = get_weather(city.as_str()).unwrap();
 
     let template = WeatherTemplate {
@@ -48,9 +49,14 @@ async fn weather_info(city: actix_web::web::Path<String>) -> impl Responder {
         .body(template.render().unwrap())
 }
 
-#[get("/add_city/{city}")]
-async fn add_city(city: actix_web::web::Path<String>, data: web::Data<Cities>) -> impl Responder {
-    data.cities.write().unwrap().push(city.to_string());
+#[derive(Deserialize)]
+struct AddCityForm {
+    city: String,
+}
+
+#[post("/add_city")]
+async fn add_city(form: web::Form<AddCityForm>, data: web::Data<Cities>) -> impl Responder {
+    data.cities.write().unwrap().push(form.city.to_string());
 
     // write back to file
     let cities = CitiesJson {
@@ -59,7 +65,7 @@ async fn add_city(city: actix_web::web::Path<String>, data: web::Data<Cities>) -
 
     fs::write("cities.json", serde_json::to_string(&cities).unwrap()).unwrap();
 
-    println!("Added City: {}", city);
+    println!("Added City: {}", form.city);
 
     HttpResponse::SeeOther()
         .append_header(("location", "/"))
@@ -78,10 +84,16 @@ struct Cities {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
     let args: Vec<String> = env::args().collect();
 
     let host = "0.0.0.0";
-    let port: u16 = args[1].parse().unwrap_or(8080);
+
+    let mut port: u16 = 8080;
+
+    if args.len() > 1 {
+        port = args[1].parse().unwrap_or(8080);
+    }
 
     let cities = fs::read_to_string("cities.json").unwrap();
     let cities: CitiesJson = serde_json::from_str(cities.as_str()).unwrap();
